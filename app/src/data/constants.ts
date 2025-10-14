@@ -1,0 +1,7 @@
+export const GOLD_REVALUATION_1934_SHOCK = 0.68;
+export const PEAK_TO_TROUGH_US_LARGE_SHOCK = -0.85;
+export const YEAR1_TBILLS_1929_SHOCK = 0.03;
+export const YEAR1_CORPORATES_IG_1929_SHOCK = -0.16;
+export const LOCATION_RISK_MIN = 0;
+export const LOCATION_RISK_MAX = 0.5;
+export const LOCATION_RISK_STEP = 0.05;
