@@ -26,6 +26,11 @@ export const scenarioTemplates: ScenarioTemplate[] = [
       goldRevaluation1934Enabled: false,
       realVsNominalDefault: "nominal",
       locationRiskDefault: 0,
+      purchasingPowerAdjustments: {
+        year1: -0.08,
+        cycle: -0.18,
+        trough: -0.25,
+      },
     },
     shockMap: {
       tbills: 0.11,
@@ -45,6 +50,13 @@ export const scenarioTemplates: ScenarioTemplate[] = [
     name: "B) Stagflation 2.0",
     defaultHorizon: "year1",
     notesKey: "B_stagflation",
+    options: {
+      purchasingPowerAdjustments: {
+        year1: 0.09,
+        cycle: 0.15,
+        trough: 0.18,
+      },
+    },
     shockMap: {
       us_large: -0.45,
       treasuries_10y: -0.3,
@@ -62,6 +74,13 @@ export const scenarioTemplates: ScenarioTemplate[] = [
     name: "C) Bondquake (rates snapback)",
     defaultHorizon: "year1",
     notesKey: "C_bondquake",
+    options: {
+      purchasingPowerAdjustments: {
+        year1: 0.04,
+        cycle: 0.06,
+        trough: 0.08,
+      },
+    },
     shockMap: {
       us_large: -0.35,
       treasuries_10y: -0.3,
@@ -79,6 +98,13 @@ export const scenarioTemplates: ScenarioTemplate[] = [
     name: "D) Credit crunch & property bust",
     defaultHorizon: "year1",
     notesKey: "D_credit_crunch",
+    options: {
+      purchasingPowerAdjustments: {
+        year1: 0.02,
+        cycle: 0.04,
+        trough: 0.06,
+      },
+    },
     shockMap: {
       us_large: -0.5,
       treasuries_10y: 0.1,
@@ -96,6 +122,13 @@ export const scenarioTemplates: ScenarioTemplate[] = [
     name: "E) Tech-lever meltdown (AI unwind)",
     defaultHorizon: "year1",
     notesKey: "E_tech_lever",
+    options: {
+      purchasingPowerAdjustments: {
+        year1: 0.03,
+        cycle: 0.05,
+        trough: 0.06,
+      },
+    },
     shockMap: {
       us_large: -0.45,
       growth_equity: -0.65,
@@ -134,6 +167,10 @@ export const baseOptions: Options = {
 export const buildInitialOptions = (template: ScenarioTemplate): Options => ({
   ...baseOptions,
   horizon: template.defaultHorizon,
+  useRealReturns:
+    template.options?.realVsNominalDefault === "real"
+      ? true
+      : baseOptions.useRealReturns,
   includeGoldRevaluation1934:
     template.options?.goldRevaluation1934Enabled ??
     baseOptions.includeGoldRevaluation1934,

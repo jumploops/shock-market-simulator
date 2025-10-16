@@ -10,6 +10,7 @@ import {
 import { computeShock } from "./engine/shockEngine";
 import {
   DEFAULT_SCENARIO_ID,
+  baseOptions,
   buildInitialOptions,
   scenarioTemplateMap,
   scenarioTemplates,
@@ -20,6 +21,7 @@ import {
   LOCATION_RISK_MIN,
   LOCATION_RISK_STEP,
 } from "./data/constants";
+import { scenarioNarratives } from "./data/scenarioCopy";
 import type {
   Options,
   PortfolioFormState,
@@ -40,6 +42,11 @@ const percentFormatter = new Intl.NumberFormat("en-US", {
 });
 
 const horizonOptions: Options["horizon"][] = ["year1", "cycle", "trough"];
+const horizonLabels: Record<Options["horizon"], string> = {
+  year1: "Year 1",
+  cycle: "Cycle window",
+  trough: "Peak → Trough",
+};
 
 const simpleFieldLabels: Record<SimplePortfolioKey, string> = {
   cash_insured: "Cash (insured)",
@@ -100,10 +107,14 @@ function App() {
   useEffect(() => {
     setOptions((prev) => {
       const initial = buildInitialOptions(scenarioTemplate);
+      const preserveReal =
+        prev.useRealReturns !== baseOptions.useRealReturns;
       return {
         ...prev,
         ...initial,
-        useRealReturns: prev.useRealReturns,
+        useRealReturns: preserveReal
+          ? prev.useRealReturns
+          : initial.useRealReturns,
       };
     });
   }, [scenarioId, scenarioTemplate]);
@@ -121,6 +132,11 @@ function App() {
   const topImpacts = useMemo(
     () => getTopImpacts(shockResult.items),
     [shockResult.items],
+  );
+
+  const narrative = useMemo(
+    () => scenarioNarratives[scenarioTemplate.notesKey] ?? [],
+    [scenarioTemplate.notesKey],
   );
 
   const handleSimpleChange =
@@ -200,10 +216,24 @@ function App() {
     }));
   };
 
+  const handleRealToggle = (event: ChangeEvent<HTMLInputElement>) => {
+    setOptions((prev) => ({
+      ...prev,
+      useRealReturns: event.target.checked,
+    }));
+  };
+
   const netWorthBefore = shockResult.totals.netWorthBefore;
   const netWorthAfter = shockResult.totals.netWorthAfter;
   const netWorthDelta = shockResult.totals.netWorthDelta;
   const netWorthDeltaPct = shockResult.totals.netWorthDeltaPct;
+  const purchasingPowerAdjustment =
+    shockResult.totals.purchasingPowerAdjustment;
+
+  const netWorthAfterLabel = options.useRealReturns
+    ? "Net worth (after — real)"
+    : "Net worth (after)";
+  const changeLabel = options.useRealReturns ? "Change (real)" : "Change";
 
   return (
     <div className="app">
@@ -323,6 +353,16 @@ function App() {
               </label>
             ))}
           </div>
+          <div className="advanced-options">
+            <label className="checkbox">
+              <input
+                type="checkbox"
+                checked={options.useRealReturns}
+                onChange={handleRealToggle}
+              />
+              Show results in real terms (adjust for inflation/deflation)
+            </label>
+          </div>
         </details>
       </section>
 
@@ -334,17 +374,23 @@ function App() {
             <strong>{formatCurrency(netWorthBefore)}</strong>
           </div>
           <div>
-            <span className="result-label">Net worth (after)</span>
+            <span className="result-label">{netWorthAfterLabel}</span>
             <strong>{formatCurrency(netWorthAfter)}</strong>
           </div>
           <div>
-            <span className="result-label">Change</span>
+            <span className="result-label">{changeLabel}</span>
             <strong>
               {formatCurrency(netWorthDelta)} (
               {formatPercent(netWorthDeltaPct)})
             </strong>
           </div>
         </div>
+        {options.useRealReturns && (
+          <p className="muted small-note">
+            Purchasing power shift: {formatPercent(purchasingPowerAdjustment)} (
+            {horizonLabels[options.horizon]})
+          </p>
+        )}
 
         <div className="impacts">
           <h3>Top drivers</h3>
@@ -360,6 +406,21 @@ function App() {
                     {formatPercent(impact.shock)})
                   </span>
                 </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="scenario-notes">
+          <h3>Why it changed</h3>
+          {narrative.length === 0 ? (
+            <p className="muted">
+              Scenario copy coming soon—notes file is empty for this template.
+            </p>
+          ) : (
+            <ul>
+              {narrative.map((bullet, idx) => (
+                <li key={idx}>{bullet}</li>
               ))}
             </ul>
           )}

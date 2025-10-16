@@ -41,6 +41,12 @@ const applyScenarioAdjustments = (
   return adjusted;
 };
 
+const getPurchasingPowerAdjustment = (
+  template: ScenarioTemplate,
+  options: Options,
+): number =>
+  template.options?.purchasingPowerAdjustments?.[options.horizon] ?? 0;
+
 export const computeShock = (
   amounts: PortfolioAmounts,
   template: ScenarioTemplate,
@@ -84,23 +90,63 @@ export const computeShock = (
       });
     }
 
+    let finalItems = items;
+    let finalAssetsAfter = assetsAfter;
+    let finalLiabilitiesAfter = liabilitiesAfter;
+    let purchasingPowerAdjustment = 0;
+
+    if (options.useRealReturns) {
+      purchasingPowerAdjustment = getPurchasingPowerAdjustment(
+        template,
+        options,
+      );
+      const factor = 1 + purchasingPowerAdjustment;
+
+      if (factor > 0 && Math.abs(factor - 1) > 1e-9) {
+        finalAssetsAfter = 0;
+        finalLiabilitiesAfter = 0;
+        finalItems = items.map((item) => {
+          const after =
+            item.type === "asset" || item.type === "liability"
+              ? item.after / factor
+              : item.after;
+          const delta = after - item.before;
+
+          if (item.type === "asset") {
+            finalAssetsAfter += after;
+          } else {
+            finalLiabilitiesAfter += after;
+          }
+
+          return {
+            ...item,
+            after,
+            delta,
+          };
+        });
+      } else {
+        purchasingPowerAdjustment = 0;
+      }
+    }
+
     const netWorthBefore = assetsBefore - liabilitiesBefore;
-    const netWorthAfter = assetsAfter - liabilitiesAfter;
+    const netWorthAfter = finalAssetsAfter - finalLiabilitiesAfter;
     const netWorthDelta = netWorthAfter - netWorthBefore;
     const netWorthDeltaPct =
       netWorthBefore === 0 ? 0 : netWorthDelta / netWorthBefore;
 
     return {
-      items,
+      items: finalItems,
       totals: {
         assetsBefore,
-        assetsAfter,
+        assetsAfter: finalAssetsAfter,
         liabilitiesBefore,
-        liabilitiesAfter,
+        liabilitiesAfter: finalLiabilitiesAfter,
         netWorthBefore,
         netWorthAfter,
         netWorthDelta,
         netWorthDeltaPct,
+        purchasingPowerAdjustment,
       },
     };
 };

@@ -1,0 +1,32 @@
+{
+  "A_1929": [
+    "Blue-chip equities drop roughly 65% across 1929–1932 while small caps sink deeper as credit evaporates.",
+    "Bills and long Treasuries post modest gains; insured cash and sovereign debt blunt the deflation shock.",
+    "Real estate sheds about 25% on average; use the location slider to mimic harder-hit metros like Chicago.",
+    "Gold stays flat through 1932 unless you toggle the 1934 revaluation, which jumps the metal about +68%."
+  ],
+  "B_stagflation": [
+    "Energy and policy shocks push inflation expectations higher, derating equities by ~45%.",
+    "Duration-heavy Treasuries and IG credit sell off as real yields spike, while T-bills reset to higher coupons.",
+    "Gold benefits from the inflation scare and acts as the standout positive leg in the mix.",
+    "Real estate reprices on higher cap rates, knocking 20% off appraisals before vacancies even show up."
+  ],
+  "C_bondquake": [
+    "A sudden term-premium snapback knocks ~30% off long Treasuries and IG credit.",
+    "Equities follow the rate shock: multiples compress as financing costs jump.",
+    "Short bills capture higher yields, cushioning cash allocations despite the bond selloff.",
+    "Gold slips modestly as real yields surge, trimming its usual safe-haven role."
+  ],
+  "D_credit_crunch": [
+    "A refinancing wall and widening spreads drag equities roughly 50% lower.",
+    "Treasuries rally on a flight to quality, offering rare positive carry in the stress mix.",
+    "Commercial property and levered real estate see 35% markdowns even before the location slider.",
+    "Gold delivers a mild gain, echoing past credit events where policy uncertainty lifts the metal."
+  ],
+  "E_tech_lever": [
+    "Growth leadership unwinds: concentrated tech exposure loses about 65% while the broad market drops ~45%.",
+    "Safe rates compress as growth cools, helping Treasuries print a small positive total return.",
+    "Leverage in private credit and venture bleeds into the ‘other’ bucket, marking it down sharply.",
+    "Gold closes the gap with a ~20% pop as investors run for defensive hedges."
+  ]
+}

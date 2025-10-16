@@ -110,6 +110,12 @@
   margin-bottom: 0.5rem;
 }
 
+.advanced-options {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
 .results-summary {
   display: grid;
   gap: 1rem;
@@ -158,9 +164,30 @@
   font-variant-numeric: tabular-nums;
 }
 
+.scenario-notes {
+  margin-top: 2rem;
+}
+
+.scenario-notes h3 {
+  margin: 0 0 0.75rem;
+}
+
+.scenario-notes ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.5rem;
+  list-style: disc;
+}
+
 .muted {
   margin: 0;
   color: #6a6a6a;
+}
+
+.small-note {
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
 }
 
 @media (max-width: 720px) {

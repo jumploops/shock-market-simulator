@@ -41,6 +41,7 @@ export interface ScenarioTemplate {
     goldRevaluation1934Enabled?: boolean;
     realVsNominalDefault?: "nominal" | "real";
     locationRiskDefault?: number;
+    purchasingPowerAdjustments?: Partial<Record<HorizonMode, number>>;
   };
 }
 
@@ -84,5 +85,8 @@ export interface ShockComputation {
     netWorthAfter: number;
     netWorthDelta: number;
     netWorthDeltaPct: number;
+    purchasingPowerAdjustment: number;
   };
 }
+
+export type ScenarioNarratives = Record<string, string[]>;
