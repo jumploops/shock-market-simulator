@@ -14,6 +14,7 @@ import {
   buildInitialOptions,
   scenarioTemplateMap,
   scenarioTemplates,
+  scenarioMappingRules,
 } from "./data/scenarioTemplates";
 import type { ScenarioId } from "./data/scenarioTemplates";
 import {
@@ -24,6 +25,7 @@ import {
 import { scenarioNarratives } from "./data/scenarioCopy";
 import CompositionChart from "./components/CompositionChart";
 import WaterfallChart from "./components/WaterfallChart";
+import Tooltip from "./components/Tooltip";
 import assumptionsContent from "../content/assumptions.md?raw";
 import sourcesContent from "../content/sources.md?raw";
 import emptyStatesContent from "../content/empty_states.md?raw";
@@ -152,6 +154,64 @@ const CATEGORY_DEFINITIONS = [
   },
 ] as const;
 
+const simpleFieldLabels: Record<SimplePortfolioKey, string> = {
+  cash_insured: "Cash (insured)",
+  cash_other: "Cash (other/uninsured)",
+  bonds: "Bonds (simple total)",
+  stocks: "Stocks (broad)",
+  gold: "Gold",
+  real_estate_value: "Real estate (value)",
+  mortgage: "Mortgage balance",
+  other: "Other assets",
+  margin_debt: "Margin debt",
+};
+
+const simpleFieldDescriptions: Partial<Record<SimplePortfolioKey, string>> = {
+  bonds:
+    "Auto-distributes equally into T-Bills, 10Y Treasuries, and IG corporates unless you set the advanced bond fields.",
+  stocks:
+    "Defaults to US large cap. Use the advanced equity inputs to rebalance into small cap, international, or growth buckets.",
+  other:
+    "Behaves like Stocks by default. Enter a value in Advanced to pin it to a different asset behaviour.",
+  real_estate_value:
+    "Scenario shocks apply to property value only. Mortgage stays unchanged, so negative equity can appear here.",
+};
+
+const advancedFieldDescriptions: Partial<Record<AdvancedPortfolioKey, string>> = {
+  tbills:
+    "Portion of Bonds mapped to short-term bills. Overrides the default split when you enter a value.",
+  treasuries_10y:
+    "Portion of Bonds allocated to 10-year Treasuries (duration-heavy).",
+  corporates_ig:
+    "Investment-grade credit share of the Bonds bucket. Entering a value replaces the default equal split.",
+  corporates_hy:
+    "High-yield corporates participate only when you assign an amount here.",
+  us_large:
+    "Large-cap equities; inherits the Stocks bucket unless you redistribute in Advanced.",
+  us_small:
+    "Small-cap equities. Requires an explicit value to participate in shocks.",
+  international:
+    "International equities allocated only when you set an amount.",
+  growth_equity:
+    "Growth/tech-style equities. Only moves when this field is populated.",
+};
+
+const advancedKeyOrigins: Partial<Record<PortfolioKey, string>> = (() => {
+  const inverse: Partial<Record<PortfolioKey, string>> = {};
+  for (const [simpleKey, advancedKeys] of Object.entries(
+    scenarioMappingRules.simpleToAdvanced,
+  )) {
+    const label = simpleFieldLabels[simpleKey as SimplePortfolioKey];
+    if (!label) {
+      continue;
+    }
+    for (const advKey of advancedKeys ?? []) {
+      inverse[advKey as PortfolioKey] = `Derived from ${label} unless overridden in Advanced.`;
+    }
+  }
+  return inverse;
+})();
+
 type PersistedState = {
   version: number;
   scenarioId?: string;
@@ -239,18 +299,6 @@ const sanitizeFormState = (
     simple,
     advanced,
   };
-};
-
-const simpleFieldLabels: Record<SimplePortfolioKey, string> = {
-  cash_insured: "Cash (insured)",
-  cash_other: "Cash (other/uninsured)",
-  bonds: "Bonds (simple total)",
-  stocks: "Stocks (broad)",
-  gold: "Gold",
-  real_estate_value: "Real estate (value)",
-  mortgage: "Mortgage balance",
-  other: "Other assets",
-  margin_debt: "Margin debt",
 };
 
 const advancedFieldLabels: Record<PortfolioKey, string> = {
@@ -655,6 +703,81 @@ function App() {
       </header>
 
       <section className="panel">
+        <h2>Portfolio inputs</h2>
+        <div className="grid">
+          {SIMPLE_PORTFOLIO_KEYS.map((key) => (
+            <label key={key} className="field">
+              <span className="field-label">
+                <span>
+                  {simpleFieldLabels[key]}
+                  {isLiabilityKey(key as PortfolioKey) ? " (liability)" : ""}
+                </span>
+                {simpleFieldDescriptions[key] && (
+                  <Tooltip
+                    label={<span className="tooltip-icon">i</span>}
+                    content={simpleFieldDescriptions[key] as string}
+                  />
+                )}
+              </span>
+              <input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="1000"
+                value={formState.simple[key]}
+                onChange={handleSimpleChange(key)}
+              />
+            </label>
+          ))}
+        </div>
+
+        <details className="advanced">
+          <summary>Advanced splits</summary>
+          <div className="grid">
+            {ADVANCED_ONLY_KEYS.map((key) => (
+              <label key={key} className="field">
+                <span className="field-label">
+                  <span>{getScenarioLabel(key)}</span>
+                  {advancedFieldDescriptions[key] && (
+                    <Tooltip
+                      label={<span className="tooltip-icon">i</span>}
+                      content={advancedFieldDescriptions[key] as string}
+                    />
+                  )}
+                </span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="1000"
+                  value={formState.advanced[key] ?? ""}
+                  onChange={handleAdvancedChange(key)}
+                />
+              </label>
+            ))}
+          </div>
+          <div className="advanced-options">
+            <label className="checkbox">
+              <input
+                type="checkbox"
+                checked={options.useRealReturns}
+                onChange={handleRealToggle}
+              />
+              Show results in real terms (adjust for inflation/deflation)
+            </label>
+          </div>
+          {emptyStates.advanced_without_totals && (
+            <p className="helper-text">
+              {emptyStates.advanced_without_totals.body}
+            </p>
+          )}
+          {!options.useRealReturns && realReturnsHint && (
+            <p className="helper-text">{realReturnsHint.body}</p>
+          )}
+        </details>
+      </section>
+
+      <section className="panel">
         <h2>Scenario</h2>
         <div className="scenario-badge">
           <span>{scenarioTemplate.name}</span>
@@ -734,65 +857,6 @@ function App() {
         </p>
       </section>
 
-      <section className="panel">
-        <h2>Portfolio inputs</h2>
-        <div className="grid">
-          {SIMPLE_PORTFOLIO_KEYS.map((key) => (
-            <label key={key} className="field">
-              <span>
-                {simpleFieldLabels[key]}
-                {isLiabilityKey(key as PortfolioKey) ? " (liability)" : ""}
-              </span>
-              <input
-                type="number"
-                inputMode="decimal"
-                min={0}
-                step="1000"
-                value={formState.simple[key]}
-                onChange={handleSimpleChange(key)}
-              />
-            </label>
-          ))}
-        </div>
-
-        <details className="advanced">
-          <summary>Advanced splits</summary>
-          <div className="grid">
-            {ADVANCED_ONLY_KEYS.map((key) => (
-              <label key={key} className="field">
-                <span>{getScenarioLabel(key)}</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="1000"
-                  value={formState.advanced[key] ?? ""}
-                  onChange={handleAdvancedChange(key)}
-                />
-              </label>
-            ))}
-          </div>
-          <div className="advanced-options">
-            <label className="checkbox">
-              <input
-                type="checkbox"
-                checked={options.useRealReturns}
-                onChange={handleRealToggle}
-              />
-              Show results in real terms (adjust for inflation/deflation)
-            </label>
-          </div>
-          {emptyStates.advanced_without_totals && (
-            <p className="helper-text">
-              {emptyStates.advanced_without_totals.body}
-            </p>
-          )}
-          {!options.useRealReturns && realReturnsHint && (
-            <p className="helper-text">{realReturnsHint.body}</p>
-          )}
-        </details>
-      </section>
-
       <section className="panel results">
         <h2>Shock preview</h2>
         {!hasAnyInput && emptyStates.no_inputs && (
@@ -863,7 +927,19 @@ function App() {
             <ul>
               {topImpacts.map((impact) => (
                 <li key={impact.key}>
-                  <span>{getScenarioLabel(impact.key)}</span>
+                  <span className="field-label">
+                    <span>{getScenarioLabel(impact.key)}</span>
+                    {(advancedFieldDescriptions[impact.key as AdvancedPortfolioKey] ||
+                      advancedKeyOrigins[impact.key]) && (
+                      <Tooltip
+                        label={<span className="tooltip-icon">i</span>}
+                        content={
+                          advancedFieldDescriptions[impact.key as AdvancedPortfolioKey] ??
+                          advancedKeyOrigins[impact.key]
+                        }
+                      />
+                    )}
+                  </span>
                   <span>
                     {formatCurrency(impact.delta)} (
                     {formatPercent(impact.shock)})
