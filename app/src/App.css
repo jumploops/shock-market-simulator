@@ -51,9 +51,9 @@
 .panel {
   background: #fdf9f0;
   border: 2px solid #0c0d10;
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 1.75rem 1.5rem;
-  box-shadow: 8px 8px 0 #0c0d10;
+  box-shadow: 4px 4px 0 #0c0d10;
 }
 
 .scenario-panel {
@@ -306,11 +306,12 @@
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e1e1e1;
-  border-radius: 8px;
-  background: #f7f7f7;
-  font-weight: 500;
+  padding: 0.9rem 1.1rem;
+  border: 2px solid #0c0d10;
+  border-radius: 4px;
+  background: #fffdf7;
+  box-shadow: 3px 3px 0 #0c0d10;
+  font-weight: 600;
 }
 
 .impacts li span:last-child {
@@ -341,10 +342,10 @@
 
 .content-callouts details {
   border: 2px solid #0c0d10;
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 0.75rem 1rem;
   background: #fffdf7;
-  box-shadow: 6px 6px 0 #0c0d10;
+  box-shadow: 3px 3px 0 #0c0d10;
 }
 
 .content-callouts summary {
@@ -384,7 +385,7 @@
   border: 2px solid #0c0d10;
   border-radius: 20px;
   background: linear-gradient(135deg, #fff2bd 0%, #ffe8a3 100%);
-  box-shadow: 6px 6px 0 #0c0d10;
+  box-shadow: 3px 3px 0 #0c0d10;
   font-size: 0.9rem;
   color: #23242a;
 }
@@ -423,10 +424,10 @@
 
 .chart-card {
   border: 2px solid #0c0d10;
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 1.25rem 1.1rem;
   background: #fffdf7;
-  box-shadow: 6px 6px 0 #0c0d10;
+  box-shadow: 3px 3px 0 #0c0d10;
 }
 
 .chart-card h3 {
@@ -440,9 +441,9 @@
 .chart-tooltip {
   background: #0c0d10;
   border: 2px solid #0c0d10;
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 0.75rem 0.85rem;
-  box-shadow: 6px 6px 0 #f5f2ec;
+  box-shadow: 3px 3px 0 #f5f2ec;
   color: #f5f2ec;
 }
 
