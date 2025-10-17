@@ -694,296 +694,366 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>CrashMirror prototype</h1>
+        <h1>Shock Market Simulator</h1>
         <p>
-          Enter a rough portfolio, choose a crash template, and preview
-          the impact. This is a functional scaffold for the shock
-          engine—visual polish will follow.
+          Model a 1929-style crash—or the next big shock—with clarity. Adjust
+          your mix, toggle the scenario, and watch the impact unfold.
         </p>
+        <div className="local-banner">
+          <span className="local-banner__icon">🔒</span>
+          <span>
+            Everything you enter stays in this browser. No uploads. No tracking.
+            Just local math.
+          </span>
+        </div>
       </header>
 
-      <section className="panel">
-        <h2>Portfolio inputs</h2>
-        <div className="grid">
-          {SIMPLE_PORTFOLIO_KEYS.map((key) => (
-            <label key={key} className="field">
-              <span className="field-label">
-                <span>
-                  {simpleFieldLabels[key]}
-                  {isLiabilityKey(key as PortfolioKey) ? " (liability)" : ""}
-                </span>
-                {simpleFieldDescriptions[key] && (
-                  <Tooltip
-                    label={<span className="tooltip-icon">i</span>}
-                    content={simpleFieldDescriptions[key] as string}
-                  />
-                )}
-              </span>
-              <input
-                type="number"
-                inputMode="decimal"
-                min={0}
-                step="1000"
-                value={formState.simple[key]}
-                onChange={handleSimpleChange(key)}
-              />
-            </label>
-          ))}
-        </div>
-
-        <details className="advanced">
-          <summary>Advanced splits</summary>
-          <div className="grid">
-            {ADVANCED_ONLY_KEYS.map((key) => (
-              <label key={key} className="field">
-                <span className="field-label">
-                  <span>{getScenarioLabel(key)}</span>
-                  {advancedFieldDescriptions[key] && (
-                    <Tooltip
-                      label={<span className="tooltip-icon">i</span>}
-                      content={advancedFieldDescriptions[key] as string}
-                    />
-                  )}
-                </span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="1000"
-                  value={formState.advanced[key] ?? ""}
-                  onChange={handleAdvancedChange(key)}
-                />
-              </label>
-            ))}
-          </div>
-          <div className="advanced-options">
-            <label className="checkbox">
-              <input
-                type="checkbox"
-                checked={options.useRealReturns}
-                onChange={handleRealToggle}
-              />
-              Show results in real terms (adjust for inflation/deflation)
-            </label>
-          </div>
-          {emptyStates.advanced_without_totals && (
-            <p className="helper-text">
-              {emptyStates.advanced_without_totals.body}
-            </p>
-          )}
-          {!options.useRealReturns && realReturnsHint && (
-            <p className="helper-text">{realReturnsHint.body}</p>
-          )}
-        </details>
-      </section>
-
-      <section className="panel">
-        <h2>Scenario</h2>
-        <div className="scenario-badge">
-          <span>{scenarioTemplate.name}</span>
-          <span>| {horizonLabels[options.horizon]}</span>
-          <span>| {options.useRealReturns ? "Real" : "Nominal"}</span>
-        </div>
-        <div className="scenario-grid">
-          <div className="control-row">
-            <label className="control-label" htmlFor="scenario-select">
-              Template
-            </label>
-            <select
-              id="scenario-select"
-              value={scenarioId}
-              onChange={handleScenarioChange}
-            >
-              {scenarioTemplates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="control-row">
-            <span className="control-label">Horizon</span>
-            <div className="radio-group">
-              {HORIZON_OPTIONS.map((mode) => (
-                <label key={mode} className="radio-option">
-                  <input
-                    type="radio"
-                    name="horizon"
-                    value={mode}
-                    checked={options.horizon === mode}
-                    onChange={handleHorizonChange}
-                  />
-                  {mode === "year1" && "Year 1"}
-                  {mode === "cycle" && "Cycle"}
-                  {mode === "trough" && "Peak -> Trough"}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="control-row slider-control">
-            <label className="control-label" htmlFor="location-risk">
-              Location risk
-            </label>
-            <input
-              id="location-risk"
-              type="range"
-              min={LOCATION_RISK_MIN}
-              max={LOCATION_RISK_MAX}
-              step={LOCATION_RISK_STEP}
-              value={options.locationRisk}
-              onChange={handleLocationRiskChange}
-            />
-            <span className="range-value">
-              {(options.locationRisk * 100).toFixed(0)}% extra haircut
-            </span>
-          </div>
-
-          {scenarioId === "A_1929" && (
-            <label className="checkbox">
-              <input
-                type="checkbox"
-                checked={options.includeGoldRevaluation1934}
-                onChange={handleGoldToggle}
-              />
-              Include 1934 gold revaluation (+68%)
-            </label>
-          )}
-        </div>
-
-        <p className="muted small-note local-note">
-          Saved locally in this browser only. Nothing leaves this page.
-        </p>
-      </section>
-
-      <section className="panel results">
-        <h2>Shock preview</h2>
-        {!hasAnyInput && emptyStates.no_inputs && (
-          <p className="empty-state">
-            <strong>{emptyStates.no_inputs.title}:</strong>{" "}
-            {emptyStates.no_inputs.body}
-          </p>
-        )}
-        <div className="results-summary">
-          <div>
-            <span className="result-label">Net worth (now)</span>
-            <strong>{formatCurrency(netWorthBefore)}</strong>
-          </div>
-          <div>
-            <span className="result-label">{netWorthAfterLabel}</span>
-            <strong>{formatCurrency(netWorthAfter)}</strong>
-          </div>
-          <div>
-            <span className="result-label">{changeLabel}</span>
-            <strong>
-              {formatCurrency(netWorthDelta)} (
-              {formatPercent(netWorthDeltaPct)})
-            </strong>
-          </div>
-        </div>
-        {options.useRealReturns && (
-          <p className="muted small-note">
-            Purchasing power shift: {formatPercent(purchasingPowerAdjustment)} (
-            {horizonLabels[options.horizon]})
-          </p>
-        )}
-
-        <div className="chart-section">
-          <div className="chart-card">
-            <h3>Portfolio mix</h3>
-            {compositionChartData.length > 0 ? (
-              <CompositionChart
-                data={compositionChartData}
-                categories={compositionCategories}
-                formatCurrency={shortCurrency}
-              />
-            ) : (
-              <p className="muted chart-empty">
-                Add assets to see the mix shift.
-              </p>
-            )}
-          </div>
-          <div className="chart-card">
-            <h3>Contribution waterfall</h3>
-            {waterfallData.length > 0 ? (
-              <WaterfallChart
-                data={waterfallData}
-                formatCurrency={formatCurrencySigned}
-              />
-            ) : (
-              <p className="muted chart-empty">
-                Add positions to trace the net change.
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="impacts">
-          <h3>Top drivers</h3>
-          {topImpacts.length === 0 ? (
-            <p className="muted">{topDriversEmptyMessage}</p>
-          ) : (
-            <ul>
-              {topImpacts.map((impact) => (
-                <li key={impact.key}>
+      <div className="layout">
+        <div className="sidebar">
+          <section className="panel">
+            <h2>Portfolio inputs</h2>
+            <div className="grid">
+              {SIMPLE_PORTFOLIO_KEYS.map((key) => (
+                <label key={key} className="field">
                   <span className="field-label">
-                    <span>{getScenarioLabel(impact.key)}</span>
-                    {(advancedFieldDescriptions[impact.key as AdvancedPortfolioKey] ||
-                      advancedKeyOrigins[impact.key]) && (
+                    <span>
+                      {simpleFieldLabels[key]}
+                      {isLiabilityKey(key as PortfolioKey) ? " (liability)" : ""}
+                    </span>
+                    {simpleFieldDescriptions[key] && (
                       <Tooltip
                         label={<span className="tooltip-icon">i</span>}
-                        content={
-                          advancedFieldDescriptions[impact.key as AdvancedPortfolioKey] ??
-                          advancedKeyOrigins[impact.key]
-                        }
+                        content={simpleFieldDescriptions[key] as string}
                       />
                     )}
                   </span>
-                  <span>
-                    {formatCurrency(impact.delta)} (
-                    {formatPercent(impact.shock)})
-                  </span>
-                </li>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step="1000"
+                    value={formState.simple[key]}
+                    onChange={handleSimpleChange(key)}
+                  />
+                </label>
               ))}
-            </ul>
-          )}
+            </div>
+
+            <details className="advanced">
+              <summary>Advanced splits</summary>
+              <div className="grid">
+                {ADVANCED_ONLY_KEYS.map((key) => (
+                  <label key={key} className="field">
+                    <span className="field-label">
+                      <span>{getScenarioLabel(key)}</span>
+                      {advancedFieldDescriptions[key] && (
+                        <Tooltip
+                          label={<span className="tooltip-icon">i</span>}
+                          content={advancedFieldDescriptions[key] as string}
+                        />
+                      )}
+                    </span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      step="1000"
+                      value={formState.advanced[key] ?? ""}
+                      onChange={handleAdvancedChange(key)}
+                    />
+                  </label>
+                ))}
+              </div>
+              <div className="advanced-options">
+                <label className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={options.useRealReturns}
+                    onChange={handleRealToggle}
+                  />
+                  Show results in real terms (adjust for inflation/deflation)
+                </label>
+              </div>
+              {emptyStates.advanced_without_totals && (
+                <p className="helper-text">
+                  {emptyStates.advanced_without_totals.body}
+                </p>
+              )}
+              {!options.useRealReturns && realReturnsHint && (
+                <p className="helper-text">{realReturnsHint.body}</p>
+              )}
+            </details>
+          </section>
+
+          <section className="panel scenario-panel scenario-panel--sidebar">
+            <h2>Scenario</h2>
+            <div className="scenario-header">
+              <select
+                className="scenario-select"
+                value={scenarioId}
+                onChange={handleScenarioChange}
+              >
+                {scenarioTemplates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="scenario-grid">
+              <div className="control-row">
+                <span className="control-label">Horizon</span>
+                <div className="radio-group">
+                  {HORIZON_OPTIONS.map((mode) => (
+                    <label key={mode} className="radio-option">
+                      <input
+                        type="radio"
+                        name="horizon-sidebar"
+                        value={mode}
+                        checked={options.horizon === mode}
+                        onChange={handleHorizonChange}
+                      />
+                      {mode === "year1" && "Year 1"}
+                      {mode === "cycle" && "Cycle"}
+                      {mode === "trough" && "Peak -> Trough"}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="control-row slider-control">
+                <label className="control-label" htmlFor="location-risk">
+                  Location risk
+                </label>
+                <input
+                  id="location-risk"
+                  type="range"
+                  min={LOCATION_RISK_MIN}
+                  max={LOCATION_RISK_MAX}
+                  step={LOCATION_RISK_STEP}
+                  value={options.locationRisk}
+                  onChange={handleLocationRiskChange}
+                />
+                <span className="range-value">
+                  {(options.locationRisk * 100).toFixed(0)}% extra haircut
+                </span>
+              </div>
+
+              {scenarioId === "A_1929" && (
+                <label className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={options.includeGoldRevaluation1934}
+                    onChange={handleGoldToggle}
+                  />
+                  Include 1934 gold revaluation (+68%)
+                </label>
+              )}
+            </div>
+
+            
+          </section>
         </div>
 
-        <div className="scenario-notes">
-          <h3>Why it changed</h3>
-          {narrative.length === 0 ? (
-            <p className="muted">
-              Scenario copy coming soon - the notes file is empty for this template.
-            </p>
-          ) : (
-            <ul>
-              {narrative.map((bullet, idx) => (
-                <li key={idx}>{bullet}</li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <div className="main-content">
+          <section className="panel scenario-panel scenario-panel--main">
+            <h2>Scenario</h2>
+            <div className="scenario-header">
+              <select
+                className="scenario-select"
+                value={scenarioId}
+                onChange={handleScenarioChange}
+              >
+                {scenarioTemplates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="scenario-grid">
+              <div className="control-row">
+                <span className="control-label">Horizon</span>
+                <div className="radio-group">
+                  {HORIZON_OPTIONS.map((mode) => (
+                    <label key={mode} className="radio-option">
+                      <input
+                        type="radio"
+                        name="horizon-main"
+                        value={mode}
+                        checked={options.horizon === mode}
+                        onChange={handleHorizonChange}
+                      />
+                      {mode === "year1" && "Year 1"}
+                      {mode === "cycle" && "Cycle"}
+                      {mode === "trough" && "Peak -> Trough"}
+                    </label>
+                  ))}
+                </div>
+              </div>
 
-        <div className="content-callouts">
-          <details>
-            <summary>Key assumptions</summary>
-            <ul>
-              {assumptionsList.map((item, idx) => (
-                <li key={idx}>{item}</li>
-              ))}
-            </ul>
-          </details>
-          <details>
-            <summary>Source anchors</summary>
-            <ul>
-              {sourcesList.map((item, idx) => (
-                <li key={idx}>{item}</li>
-              ))}
-            </ul>
-          </details>
+              <div className="control-row slider-control">
+                <label className="control-label" htmlFor="location-risk">
+                  Location risk
+                </label>
+                <input
+                  id="location-risk"
+                  type="range"
+                  min={LOCATION_RISK_MIN}
+                  max={LOCATION_RISK_MAX}
+                  step={LOCATION_RISK_STEP}
+                  value={options.locationRisk}
+                  onChange={handleLocationRiskChange}
+                />
+                <span className="range-value">
+                  {(options.locationRisk * 100).toFixed(0)}% extra haircut
+                </span>
+              </div>
+
+              {scenarioId === "A_1929" && (
+                <label className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={options.includeGoldRevaluation1934}
+                    onChange={handleGoldToggle}
+                  />
+                  Include 1934 gold revaluation (+68%)
+                </label>
+              )}
+            </div>
+
+            
+          </section>
+
+          <section className="panel results">
+            <h2>Shock preview</h2>
+            {!hasAnyInput && emptyStates.no_inputs && (
+              <p className="empty-state">
+                <strong>{emptyStates.no_inputs.title}:</strong>{" "}
+                {emptyStates.no_inputs.body}
+              </p>
+            )}
+            <div className="results-summary">
+              <div>
+                <span className="result-label">Net worth (now)</span>
+                <strong>{formatCurrency(netWorthBefore)}</strong>
+              </div>
+              <div>
+                <span className="result-label">{netWorthAfterLabel}</span>
+                <strong>{formatCurrency(netWorthAfter)}</strong>
+              </div>
+              <div>
+                <span className="result-label">{changeLabel}</span>
+                <strong>
+                  {formatCurrency(netWorthDelta)} (
+                  {formatPercent(netWorthDeltaPct)})
+                </strong>
+              </div>
+            </div>
+            {options.useRealReturns && (
+              <p className="muted small-note">
+                Purchasing power shift: {formatPercent(purchasingPowerAdjustment)} (
+                {horizonLabels[options.horizon]})
+              </p>
+            )}
+
+            <div className="chart-section">
+              <div className="chart-card">
+                <h3>Portfolio mix</h3>
+                {compositionChartData.length > 0 ? (
+                  <CompositionChart
+                    data={compositionChartData}
+                    categories={compositionCategories}
+                    formatCurrency={shortCurrency}
+                  />
+                ) : (
+                  <p className="muted chart-empty">
+                    Add assets to see the mix shift.
+                  </p>
+                )}
+              </div>
+              <div className="chart-card">
+                <h3>Contribution waterfall</h3>
+                {waterfallData.length > 0 ? (
+                  <WaterfallChart
+                    data={waterfallData}
+                    formatCurrency={formatCurrencySigned}
+                  />
+                ) : (
+                  <p className="muted chart-empty">
+                    Add positions to trace the net change.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="impacts">
+              <h3>Top drivers</h3>
+              {topImpacts.length === 0 ? (
+                <p className="muted">{topDriversEmptyMessage}</p>
+              ) : (
+                <ul>
+                  {topImpacts.map((impact) => (
+                    <li key={impact.key}>
+                      <span className="field-label">
+                        <span>{getScenarioLabel(impact.key)}</span>
+                        {(advancedFieldDescriptions[impact.key as AdvancedPortfolioKey] ||
+                          advancedKeyOrigins[impact.key]) && (
+                          <Tooltip
+                            label={<span className="tooltip-icon">i</span>}
+                            content={
+                              advancedFieldDescriptions[impact.key as AdvancedPortfolioKey] ??
+                              advancedKeyOrigins[impact.key]
+                            }
+                          />
+                        )}
+                      </span>
+                      <span>
+                        {formatCurrency(impact.delta)} (
+                        {formatPercent(impact.shock)})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="scenario-notes">
+              <h3>Why it changed</h3>
+              {narrative.length === 0 ? (
+                <p className="muted">
+                  Scenario copy coming soon - the notes file is empty for this template.
+                </p>
+              ) : (
+                <ul>
+                  {narrative.map((bullet, idx) => (
+                    <li key={idx}>{bullet}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="content-callouts">
+              <details>
+                <summary>Key assumptions</summary>
+                <ul>
+                  {assumptionsList.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </details>
+              <details>
+                <summary>Source anchors</summary>
+                <ul>
+                  {sourcesList.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </details>
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
