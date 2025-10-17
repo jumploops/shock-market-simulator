@@ -1,6 +1,6 @@
 {
   "A_1929": [
-    "Blue-chip equities drop roughly 65% across 1929–1932 while small caps sink deeper as credit evaporates.",
+    "Blue-chip equities drop roughly 65% across 1929-1932 while small caps sink deeper as credit evaporates.",
     "Bills and long Treasuries post modest gains; insured cash and sovereign debt blunt the deflation shock.",
     "Real estate sheds about 25% on average; use the location slider to mimic harder-hit metros like Chicago.",
     "Gold stays flat through 1932 unless you toggle the 1934 revaluation, which jumps the metal about +68%."
@@ -26,7 +26,7 @@
   "E_tech_lever": [
     "Growth leadership unwinds: concentrated tech exposure loses about 65% while the broad market drops ~45%.",
     "Safe rates compress as growth cools, helping Treasuries print a small positive total return.",
-    "Leverage in private credit and venture bleeds into the ‘other’ bucket, marking it down sharply.",
+    "Leverage in private credit and venture bleeds into the 'other' bucket, marking it down sharply.",
     "Gold closes the gap with a ~20% pop as investors run for defensive hedges."
   ]
 }
