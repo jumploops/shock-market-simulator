@@ -2,6 +2,8 @@
 
 The Shock Market Simulator is a lightweight web app that lets you explore what a 1929-style crash—or four alternate “what-if” stress events—could do to your modern (2025) portfolio. Enter your holdings, pick a scenario, and watch the engine recalculate your net worth, chart the before/after mix, and surface the biggest drivers.
 
+Live demo: https://shockmarketsimulator.com/
+
 ![Shock Market Simulator screenshot](app/public/screenshot.png)
 
 ## What it does
