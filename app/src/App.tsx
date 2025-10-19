@@ -1,4 +1,5 @@
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import "./App.css";
 import {
   ADVANCED_ONLY_KEYS,
@@ -24,7 +25,9 @@ import {
 } from "./data/constants";
 import { scenarioNarratives } from "./data/scenarioCopy";
 import CompositionChart from "./components/CompositionChart";
+import type { CompositionRow } from "./components/CompositionChart";
 import WaterfallChart from "./components/WaterfallChart";
+import type { WaterfallDatum } from "./components/WaterfallChart";
 import Tooltip from "./components/Tooltip";
 import assumptionsContent from "../content/assumptions.md?raw";
 import sourcesContent from "../content/sources.md?raw";
@@ -504,13 +507,13 @@ function App() {
     );
   }, [effectivePortfolio, shockResult.items]);
 
-  const compositionChartData = useMemo(() => {
+  const compositionChartData = useMemo<CompositionRow[]>(() => {
     if (aggregatedCategories.length === 0) {
       return [];
     }
 
-    const beforeRow: Record<string, string | number> = { state: "Now" };
-    const afterRow: Record<string, string | number> = {
+    const beforeRow: CompositionRow = { state: "Now" };
+    const afterRow: CompositionRow = {
       state: options.useRealReturns ? "After (real)" : "After",
     };
 
@@ -543,11 +546,13 @@ function App() {
       return [];
     }
 
-    const primary = sorted.slice(0, WATERFALL_LIMIT).map((category) => ({
-      key: category.key,
-      label: category.label,
-      delta: category.delta,
-    }));
+    const primary: WaterfallDatum[] = sorted
+      .slice(0, WATERFALL_LIMIT)
+      .map((category) => ({
+        key: category.key,
+        label: category.label,
+        delta: category.delta,
+      }));
 
     if (sorted.length > WATERFALL_LIMIT) {
       const remainderDelta = sorted

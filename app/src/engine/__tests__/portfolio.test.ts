@@ -10,6 +10,7 @@ import {
   buildInitialOptions,
   scenarioTemplateMap,
 } from "../../data/scenarioTemplates";
+import type { Options } from "../../types";
 
 describe("portfolio normalization", () => {
   it("distributes simple buckets across advanced splits while honoring overrides", () => {
@@ -48,7 +49,7 @@ describe("portfolio normalization", () => {
 describe("shock engine", () => {
   it("applies scenario shocks and purchasing power adjustments correctly", () => {
     const template = scenarioTemplateMap.B_stagflation;
-    const options = {
+    const options: Options = {
       ...buildInitialOptions(template),
       horizon: "year1",
       useRealReturns: true,
@@ -66,7 +67,7 @@ describe("shock engine", () => {
 
   it("handles deflationary adjustments by increasing real net worth", () => {
     const template = scenarioTemplateMap.A_1929;
-    const options = {
+    const options: Options = {
       ...buildInitialOptions(template),
       horizon: "cycle",
       useRealReturns: true,
