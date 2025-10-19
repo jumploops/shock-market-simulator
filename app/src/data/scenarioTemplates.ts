@@ -142,6 +142,34 @@ export const scenarioTemplates: ScenarioTemplate[] = [
       other: -0.35,
     },
   },
+  {
+    id: "F_dot_com",
+    name: "F) Dot-com boom/bust",
+    defaultHorizon: "year1",
+    notesKey: "F_dot_com",
+    options: {
+      purchasingPowerAdjustments: {
+        year1: 0.02,
+        cycle: 0.04,
+        trough: 0.05,
+      },
+    },
+    shockMap: {
+      us_large: -0.45,
+      us_small: -0.35,
+      international: -0.3,
+      growth_equity: -0.78,
+      treasuries_10y: 0.15,
+      corporates_ig: -0.05,
+      corporates_hy: -0.25,
+      tbills: 0.03,
+      real_estate_value: -0.08,
+      gold: 0.12,
+      cash_insured: 0,
+      cash_other: 0,
+      other: -0.6,
+    },
+  },
 ];
 
 export type ScenarioId = (typeof scenarioTemplates)[number]["id"];

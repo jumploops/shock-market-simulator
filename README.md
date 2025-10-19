@@ -1,6 +1,6 @@
 # Shock Market Simulator
 
-The Shock Market Simulator is a lightweight web app that lets you explore what a 1929-style crash—or four alternate “what-if” stress events—could do to your modern (2025) portfolio. Enter your holdings, pick a scenario, and watch the engine recalculate your net worth, chart the before/after mix, and surface the biggest drivers.
+The Shock Market Simulator is a lightweight web app that lets you explore what a 1929-style crash—or five alternate “what-if” stress events—could do to your modern (2025) portfolio. Enter your holdings, pick a scenario, and watch the engine recalculate your net worth, chart the before/after mix, and surface the biggest drivers.
 
 Live demo: https://shockmarketsimulator.com/
 
@@ -13,12 +13,13 @@ Live demo: https://shockmarketsimulator.com/
    - Optional advanced splits map simple buckets (e.g. “Bonds”) into specific assets—T-Bills, 10Y Treasuries, IG/HY credit, etc.—so you can tweak how shocks fan out.
 
 2. **Scenario selector**  
-   Five stress templates sit on top of the engine:
+   Six stress templates sit on top of the engine:
    - **A) 1929 analog (deflationary bust)** — built from Damodaran’s 1929-1932 asset returns, FDIC history, World Gold Council’s Gold Reserve Act, and period housing data (e.g., Chicago land prices).  
    - **B) Stagflation 2.0** — inflation shock with bonds and stocks selling off, gold and bills gaining.  
    - **C) Bondquake** — a term-premium spike; long duration gets hit first, equities follow.  
    - **D) Credit crunch & property bust** — refinancing wall, spreads widen; Treasuries rally while property slumps.  
-   - **E) Tech-lever meltdown (AI unwind)** — growth equity mean reversion, safe rates fall, gold rallies.
+   - **E) Tech-lever meltdown (AI unwind)** — growth equity mean reversion, safe rates fall, gold rallies.  
+   - **F) Dot-com boom/bust** — late-1990s tech mania unwinds, hammering growth stocks while rate cuts aid Treasuries.
 
    Horizon modes (Year 1, Cycle, Peak→Trough) and location-risk sliders let you adjust the intensity; Scenario A also exposes the 1934 gold revaluation toggle.
 
@@ -42,6 +43,7 @@ Live demo: https://shockmarketsimulator.com/
 | Bondquake | Term-premium shock approximating a 400 bps jump with duration 8. | Stocks -35%, 10Y Treasuries -30%, IG -25%, T-Bills +8%, real estate -25%, gold -10%. |
 | Credit crunch & property bust | Flight-to-quality playbook with equity/property stress. | Stocks -50%, 10Y Treasuries +10%, IG -20%, T-Bills +4%, real estate -35% (plus slider), gold +10%. |
 | Tech-lever meltdown | Growth unwind narrative, rates compress. | Broad stocks -45%, growth bucket -65% (if split), 10Y Treasuries +12%, IG -10%, T-Bills +3%, real estate -10%, gold +20%. |
+| Dot-com boom/bust | Nasdaq peak (Mar 2000) to trough (Oct 2002); S&P, Treasuries, credit sourced from FRED and Nasdaq fact sheets; venture drawdowns informed by Ofek/Richardson (2002). | Broad stocks -45%, growth/tech bucket -78%, small cap -35%, international -30%, 10Y Treasuries +15%, IG -5%, HY -25%, T-Bills +3%, real estate -8%, gold +12%, venture-style “other” -60%. |
 
 Every scenario ships with the sources called out in-app. See `plan/init.md` for the full product spec and the raw scenario JSON plus mapping rules in [`app/src/data/scenarioTemplates.ts`](app/src/data/scenarioTemplates.ts). The deterministic shock calculations live in [`app/src/engine/shockEngine.ts`](app/src/engine/shockEngine.ts), and the fan-out logic that turns “simple” buckets into advanced asset keys is in [`app/src/engine/portfolio.ts`](app/src/engine/portfolio.ts).
 

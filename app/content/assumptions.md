@@ -8,3 +8,4 @@
 - Gold pricing reflects U.S. dollar moves; 1934 revaluation is an explicit toggle for Scenario A.
 - "Real" view divides nominal results by CPI-style adjustments tied to each scenario's horizon.
 - Advanced splits override the simple buckets; any remainder is spread evenly across the mapped assets.
+- Dot-com boom/bust template leans on Nasdaq peak-to-trough history; venture-style “other” losses approximate delistings and write-offs across failed internet/telecom names.

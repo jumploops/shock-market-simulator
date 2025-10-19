@@ -253,6 +253,36 @@
   padding-top: 0.5rem;
 }
 
+.inputs-footer {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 1rem;
+}
+
+.reset-button {
+  appearance: none;
+  border: 2px solid #0c0d10;
+  background: #fffef9;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 3px 3px 0 #0c0d10;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: transform 0.1s ease;
+}
+
+.reset-button:hover {
+  transform: translate(-1px, -1px);
+}
+
+.reset-button:focus {
+  outline: 3px solid #0c0d10;
+  outline-offset: 2px;
+}
+
 .helper-text {
   margin: 0.75rem 0 0;
   font-size: 0.85rem;
