@@ -339,6 +339,16 @@ const shortCurrency = (value: number) => {
 };
 const formatPercent = (value: number) => percentFormatter.format(value);
 
+const locationRiskLabel = (value: number): string => {
+  const percent = Math.round(value * 100);
+  let tag = "balanced market";
+  if (percent <= 2) tag = "rural";
+  else if (percent <= 12) tag = "suburban hub";
+  else if (percent <= 25) tag = "commercial i.e. Chicago";
+  else tag = "NYC, SF, etc.";
+  return `${percent}% extra reduction (${tag})`;
+};
+
 const getTopImpacts = (resultItems: ReturnType<typeof computeShock>["items"]) =>
   resultItems
     .filter((item) => item.type === "asset" && item.delta !== 0)
@@ -692,21 +702,37 @@ function App() {
   const changeLabel = options.useRealReturns ? "Change (real)" : "Change";
 
   return (
+    <>
     <div className="app">
       <header className="header">
-        <h1>Shock Market Simulator</h1>
+        <div className="header-title">
+          <img src="/logo.png" alt="Shock Market logo" />
+          <h1>Shock Market Simulator</h1>
+        </div>
         <p>
           Model a 1929-style crash—or the next big shock—with clarity. Adjust
           your mix, toggle the scenario, and watch the impact unfold.
         </p>
-        <div className="local-banner">
-          <span className="local-banner__icon">🔒</span>
-          <span>
-            Everything you enter stays in this browser. No uploads. No tracking.
-            Just local math.
-          </span>
+        <div className="header-meta">
+          <div className="local-banner">
+            <span className="local-banner__icon">🔒</span>
+            <span>
+              Everything you enter stays in this browser. No uploads. No tracking.
+              Just local math.
+            </span>
+          </div>
+          <div className="header-link">
+            <a
+              href="https://github.com/jumploops/shock-market-simulator"
+              target="_blank"
+              rel="noreferrer"
+            >
+              View on GitHub ↗
+            </a>
+          </div>
         </div>
       </header>
+
 
       <div className="layout">
         <div className="sidebar">
@@ -802,7 +828,13 @@ function App() {
             </div>
             <div className="scenario-grid">
               <div className="control-row">
-                <span className="control-label">Horizon</span>
+                <span className="control-label field-label">
+                  <span>Horizon</span>
+                  <Tooltip
+                    label={<span className="tooltip-icon">i</span>}
+                    content="Choose the measurement window: Year 1 covers only the first year of the scenario, Cycle applies the multi-year period (e.g., 1929–1932), and Peak → Trough uses the maximum drawdown from top to bottom."
+                  />
+                </span>
                 <div className="radio-group">
                   {HORIZON_OPTIONS.map((mode) => (
                     <label key={mode} className="radio-option">
@@ -823,7 +855,13 @@ function App() {
 
               <div className="control-row slider-control">
                 <label className="control-label" htmlFor="location-risk">
-                  Location risk
+                  <span className="field-label">
+                    <span>Location risk</span>
+                    <Tooltip
+                      label={<span className="tooltip-icon">i</span>}
+                      content="Applies an additional percentage reduction to property values to emulate market volatility—think rural areas near 0%, suburban hubs around 10%, commercial i.e. Chicago near 20%, and high-flying coasts like San Francisco near 50%."
+                    />
+                  </span>
                 </label>
                 <input
                   id="location-risk"
@@ -835,7 +873,7 @@ function App() {
                   onChange={handleLocationRiskChange}
                 />
                 <span className="range-value">
-                  {(options.locationRisk * 100).toFixed(0)}% extra haircut
+                  {locationRiskLabel(options.locationRisk)}
                 </span>
               </div>
 
@@ -846,7 +884,13 @@ function App() {
                     checked={options.includeGoldRevaluation1934}
                     onChange={handleGoldToggle}
                   />
-                  Include 1934 gold revaluation (+68%)
+                  <span className="field-label">
+                    <span>Include 1934 gold revaluation (+68%)</span>
+                    <Tooltip
+                      label={<span className="tooltip-icon">i</span>}
+                      content="Replaces the flat interwar gold price path with the 1934 Gold Reserve Act jump to $35/oz (~+68%)."
+                    />
+                  </span>
                 </label>
               )}
             </div>
@@ -873,7 +917,13 @@ function App() {
             </div>
             <div className="scenario-grid">
               <div className="control-row">
-                <span className="control-label">Horizon</span>
+                <span className="control-label field-label">
+                  <span>Horizon</span>
+                  <Tooltip
+                    label={<span className="tooltip-icon">i</span>}
+                    content="Choose the measurement window: Year 1 covers only the first year of the scenario, Cycle applies the multi-year period (e.g., 1929–1932), and Peak → Trough uses the maximum drawdown from top to bottom."
+                  />
+                </span>
                 <div className="radio-group">
                   {HORIZON_OPTIONS.map((mode) => (
                     <label key={mode} className="radio-option">
@@ -894,7 +944,13 @@ function App() {
 
               <div className="control-row slider-control">
                 <label className="control-label" htmlFor="location-risk">
-                  Location risk
+                  <span className="field-label">
+                    <span>Location risk</span>
+                    <Tooltip
+                      label={<span className="tooltip-icon">i</span>}
+                      content="Applies an additional percentage reduction to property values to emulate market volatility—think rural areas near 0%, suburban hubs around 10%, commercial i.e. Chicago near 20%, and high-flying coasts like San Francisco near 50%."
+                    />
+                  </span>
                 </label>
                 <input
                   id="location-risk"
@@ -906,7 +962,7 @@ function App() {
                   onChange={handleLocationRiskChange}
                 />
                 <span className="range-value">
-                  {(options.locationRisk * 100).toFixed(0)}% extra haircut
+                  {locationRiskLabel(options.locationRisk)}
                 </span>
               </div>
 
@@ -1055,6 +1111,13 @@ function App() {
         </div>
       </div>
     </div>
+    <footer className="footer">
+      <span>Built with </span>
+      <a href="https://github.com/openai/codex" target="_blank" rel="noreferrer">Codex</a>
+      <span> by </span>
+      <a href="https://github.com/jumploops" target="_blank" rel="noreferrer">jumploops</a>
+    </footer>
+    </>
   );
 }
 
