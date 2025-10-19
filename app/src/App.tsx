@@ -321,7 +321,7 @@ const advancedFieldLabels: Record<PortfolioKey, string> = {
   us_large: "US large cap",
   us_small: "US small cap",
   international: "International equity",
-  growth_equity: "Growth equity",
+  growth_equity: "Growth (tech) equity",
 };
 
 const formatCurrency = (value: number) => currencyFormatter.format(value);
@@ -653,6 +653,10 @@ function App() {
       });
     };
 
+  const handleResetPortfolio = () => {
+    setFormState(createInitialFormState());
+  };
+
   const handleScenarioChange = (event: ChangeEvent<HTMLSelectElement>) => {
     setScenarioId(event.target.value as ScenarioId);
   };
@@ -763,7 +767,11 @@ function App() {
                     inputMode="decimal"
                     min={0}
                     step="1000"
-                    value={formState.simple[key]}
+                    value={
+                      formState.simple[key] === 0
+                        ? ""
+                        : formState.simple[key]
+                    }
                     onChange={handleSimpleChange(key)}
                   />
                 </label>
@@ -814,6 +822,15 @@ function App() {
                 <p className="helper-text">{realReturnsHint.body}</p>
               )}
             </details>
+            <div className="inputs-footer">
+              <button
+                type="button"
+                className="reset-button"
+                onClick={handleResetPortfolio}
+              >
+                Reset portfolio inputs
+              </button>
+            </div>
           </section>
 
           <section className="panel scenario-panel scenario-panel--sidebar">
