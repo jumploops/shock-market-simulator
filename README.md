@@ -60,6 +60,7 @@ Visit http://localhost:5173/ and start modelling.
 ## Defaults & caveats
 
 - No authentication, no network calls: everything you enter stays in localStorage.
+- First visit opens a guided onboarding wizard (cash → bonds → equities → alternatives → review). You can relaunch it later from the portfolio panel.
 - Liabilities (mortgage, margin debt) don’t recurse; no forced deleveraging modeled.
 - “Other assets” mimic stocks unless you override them in Advanced.
 - Advanced overrides subtract from the simple bucket; leaving advanced blank means we split your simple bucket evenly across the mapped assets.

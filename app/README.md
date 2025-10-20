@@ -35,7 +35,8 @@ debug/                  # Dev notes (top drivers, etc.)
 ## Design choices
 
 - **Neo-brutalist vibe**: offset shadows, heavy borders, uppercase headings. Main panels use a sticky sidebar + spacious results column. All shadows/borders are intentionally restrained (3–4px) to avoid visual clutter.
-- **Scenario duplication**: there are two scenario panels. The sidebar version supports sticky controls, while the main-content copy sits above “Shock preview” on wide screens. Both feed the same state hook.
+- **AppStateProvider**: a dedicated context in `src/state/AppStateContext.tsx` owns portfolio form state, scenario options, persistence, and the onboarding flag. Components consume it via hooks so onboarding and dashboard stay in sync.
+- **First-run onboarding**: `components/onboarding/OnboardingFlow.tsx` walks users through cash → bonds → equities → alternatives → review. The dashboard exposes a “Reopen onboarding” control for later tweaks.
 - **Deterministic math**: scenarios live in `data/scenarioTemplates.ts` and are pure JSON objects. `shockEngine.ts` transforms those into per-key deltas, while `portfolio.ts` distributes user inputs across advanced asset keys.
 - **Persistence**: everything entered is saved to `localStorage` (`crashmirror_state_v1`). On first load we deserialize, sanitize, and hydrate the form. The lock banner at the top is the UX reminder that nothing leaves the browser.
 - **Tooltips + copy**: human-friendly explanations are kept in `content/`. The Tooltip component consumes description dictionaries in `App.tsx`, keeping the copy and logic separated.
