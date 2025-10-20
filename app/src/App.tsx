@@ -833,7 +833,10 @@ function App() {
             </div>
           </section>
 
-          <section className="panel scenario-panel scenario-panel--sidebar">
+        </div>
+
+        <div className="main-content">
+          <section className="panel scenario-panel">
             <h2>Scenario</h2>
             <div className="scenario-header">
               <select
@@ -862,7 +865,7 @@ function App() {
                     <label key={mode} className="radio-option">
                       <input
                         type="radio"
-                        name="horizon-sidebar"
+                        name="horizon"
                         value={mode}
                         checked={options.horizon === mode}
                         onChange={handleHorizonChange}
@@ -913,89 +916,6 @@ function App() {
                       content="Replaces the flat interwar gold price path with the 1934 Gold Reserve Act jump to $35/oz (~+68%)."
                     />
                   </span>
-                </label>
-              )}
-            </div>
-
-            
-          </section>
-        </div>
-
-        <div className="main-content">
-          <section className="panel scenario-panel scenario-panel--main">
-            <h2>Scenario</h2>
-            <div className="scenario-header">
-              <select
-                className="scenario-select"
-                value={scenarioId}
-                onChange={handleScenarioChange}
-              >
-                {scenarioTemplates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="scenario-grid">
-              <div className="control-row">
-                <span className="control-label field-label">
-                  <span>Horizon</span>
-                  <Tooltip
-                    label={<span className="tooltip-icon">i</span>}
-                    content="Choose the measurement window: Year 1 covers only the first year of the scenario, Cycle applies the multi-year period (e.g., 1929–1932), and Peak → Trough uses the maximum drawdown from top to bottom."
-                  />
-                </span>
-                <div className="radio-group">
-                  {HORIZON_OPTIONS.map((mode) => (
-                    <label key={mode} className="radio-option">
-                      <input
-                        type="radio"
-                        name="horizon-main"
-                        value={mode}
-                        checked={options.horizon === mode}
-                        onChange={handleHorizonChange}
-                      />
-                      {mode === "year1" && "Year 1"}
-                      {mode === "cycle" && "Cycle"}
-                      {mode === "trough" && "Peak -> Trough"}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="control-row slider-control">
-                <label className="control-label" htmlFor="location-risk">
-                  <span className="field-label">
-                    <span>Location risk</span>
-                    <Tooltip
-                      label={<span className="tooltip-icon">i</span>}
-                      content="Applies an additional percentage reduction to property values to emulate market volatility—think rural areas near 0%, suburban hubs around 10%, commercial i.e. Chicago near 20%, and high-flying coasts like San Francisco near 50%."
-                    />
-                  </span>
-                </label>
-                <input
-                  id="location-risk"
-                  type="range"
-                  min={LOCATION_RISK_MIN}
-                  max={LOCATION_RISK_MAX}
-                  step={LOCATION_RISK_STEP}
-                  value={options.locationRisk}
-                  onChange={handleLocationRiskChange}
-                />
-                <span className="range-value">
-                  {locationRiskLabel(options.locationRisk)}
-                </span>
-              </div>
-
-              {scenarioId === "A_1929" && (
-                <label className="checkbox">
-                  <input
-                    type="checkbox"
-                    checked={options.includeGoldRevaluation1934}
-                    onChange={handleGoldToggle}
-                  />
-                  Include 1934 gold revaluation (+68%)
                 </label>
               )}
             </div>
