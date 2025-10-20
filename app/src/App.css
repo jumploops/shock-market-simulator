@@ -1011,10 +1011,11 @@
 }
 
 .onboarding-total {
-  margin: 0;
+  margin: 1rem 0 0;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  text-align: right;
 }
 
 .onboarding-reminder {

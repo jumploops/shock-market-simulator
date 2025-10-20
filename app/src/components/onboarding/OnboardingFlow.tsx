@@ -320,8 +320,6 @@ const ReviewStep = ({
         Double-check the snapshot. You can tweak anything later from the main dashboard.
       </p>
 
-      <p className="onboarding-total">Total assets: ${totalAssets.toLocaleString("en-US", { maximumFractionDigits: 0 })}</p>
-
       {rows.length === 0 ? (
         <p className="onboarding-empty">No positions yet—feel free to add them later.</p>
       ) : (
@@ -336,6 +334,8 @@ const ReviewStep = ({
           </tbody>
         </table>
       )}
+
+      <p className="onboarding-total">Total assets: ${totalAssets.toLocaleString("en-US", { maximumFractionDigits: 0 })}</p>
 
       <p className="onboarding-reminder">
         Everything you enter stays in this browser—nothing is sent to any server.

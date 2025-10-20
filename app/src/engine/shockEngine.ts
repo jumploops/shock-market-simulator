@@ -12,7 +12,23 @@ import type {
   ShockMap,
   ShockedValue,
   ScenarioTemplate,
+  PortfolioKey,
 } from "../types";
+
+const SHOCK_FALLBACK_GROUPS: PortfolioKey[][] = [
+  ["us_large", "growth_equity", "us_small", "international"],
+  ["corporates_ig", "corporates_hy"],
+];
+
+const SHOCK_FALLBACK_LOOKUP = (() => {
+  const map = new Map<PortfolioKey, PortfolioKey[]>();
+  for (const group of SHOCK_FALLBACK_GROUPS) {
+    for (const key of group) {
+      map.set(key, group);
+    }
+  }
+  return map;
+})();
 
 const applyScenarioAdjustments = (
   template: ScenarioTemplate,
@@ -63,7 +79,28 @@ export const computeShock = (
     for (const key of PORTFOLIO_KEYS) {
       const before = amounts[key] ?? 0;
       const type = isLiabilityKey(key) ? "liability" : "asset";
-      const shock = type === "asset" ? shockMap[key] ?? 0 : 0;
+
+      let shock = 0;
+      if (type === "asset") {
+        const direct = shockMap[key];
+        if (direct !== undefined) {
+          shock = direct;
+        } else {
+          const group = SHOCK_FALLBACK_LOOKUP.get(key);
+          if (group) {
+            for (const candidate of group) {
+              if (candidate === key) {
+                continue;
+              }
+              const candidateShock = shockMap[candidate];
+              if (candidateShock !== undefined) {
+                shock = candidateShock;
+                break;
+              }
+            }
+          }
+        }
+      }
 
       if (Math.abs(before) < 1e-9) {
         continue;
