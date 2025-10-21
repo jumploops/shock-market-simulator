@@ -38,6 +38,7 @@ export const scenarioTemplates: ScenarioTemplate[] = [
       corporates_ig: 0.08,
       us_large: -0.65,
       us_small: -0.82,
+      growth_equity: -0.65,
       gold: 0,
       real_estate_value: -0.25,
       cash_insured: 0,
