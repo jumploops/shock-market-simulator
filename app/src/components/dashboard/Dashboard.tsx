@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import {
   ADVANCED_ONLY_KEYS,
@@ -42,6 +42,7 @@ import type {
   SimplePortfolioKey,
 } from "../../types";
 import { useAppState } from "../../state/AppStateContext";
+import { createCompositionSnapshot } from "../../utils/renderCompositionSnapshot";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -416,6 +417,7 @@ const Dashboard = () => {
             <ResultsPanel
               hasAnyInput={hasAnyInput}
               emptyStates={emptyStates}
+              scenarioName={scenarioTemplate.name}
               netWorthBefore={netWorthBefore}
               netWorthAfter={netWorthAfter}
               netWorthAfterLabel={netWorthAfterLabel}
@@ -725,6 +727,7 @@ const ScenarioPanel = ({
 type ResultsPanelProps = {
   hasAnyInput: boolean;
   emptyStates: EmptyStatesMap;
+  scenarioName: string;
   netWorthBefore: number;
   netWorthAfter: number;
   netWorthAfterLabel: string;
@@ -754,6 +757,7 @@ type ResultsPanelProps = {
 const ResultsPanel = ({
   hasAnyInput,
   emptyStates,
+  scenarioName,
   netWorthBefore,
   netWorthAfter,
   netWorthAfterLabel,
@@ -778,135 +782,233 @@ const ResultsPanel = ({
   assumptionsList,
   sourcesList,
   horizonLabels,
-}: ResultsPanelProps) => (
-  <section className="panel results">
-    <h2>Shock preview</h2>
-    {!hasAnyInput && emptyStates.no_inputs && (
-      <p className="empty-state">
-        <strong>{emptyStates.no_inputs.title}:</strong>{" "}
-        {emptyStates.no_inputs.body}
-      </p>
-    )}
-    <div className="results-summary">
-      <div>
-        <span className="result-label">Net worth (now)</span>
-        <strong>{formatCurrency(netWorthBefore)}</strong>
-      </div>
-      <div>
-        <span className="result-label">{netWorthAfterLabel}</span>
-        <strong>{formatCurrency(netWorthAfter)}</strong>
-      </div>
-      <div>
-        <span className="result-label">{changeLabel}</span>
-        <strong>
-          {formatCurrency(netWorthDelta)} (
-          {formatPercent(netWorthDeltaPct)})
-        </strong>
-      </div>
-    </div>
-    {options.useRealReturns && (
-      <p className="muted small-note">
-        Purchasing power shift: {formatPercent(purchasingPowerAdjustment)} (
-        {horizonLabels[options.horizon]})
-      </p>
-    )}
+}: ResultsPanelProps) => {
+  const [isGeneratingSnapshot, setIsGeneratingSnapshot] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const { horizon, useRealReturns } = options;
 
-    <div className="chart-section">
-      <div className="chart-card">
-        <h3>Portfolio mix</h3>
-        {compositionChartData.length > 0 ? (
-          <CompositionChart
-            data={compositionChartData}
-            categories={compositionCategories}
-            formatCurrency={shortCurrency}
-          />
-        ) : (
-          <p className="muted chart-empty">
-            Add assets to see the mix shift.
-          </p>
-        )}
-      </div>
-      <div className="chart-card">
-        <h3>Contribution waterfall</h3>
-        {waterfallData.length > 0 ? (
-          <WaterfallChart
-            data={waterfallData}
-            formatCurrency={formatCurrencySigned}
-          />
-        ) : (
-          <p className="muted chart-empty">
-            Add positions to trace the net change.
-          </p>
-        )}
-      </div>
-    </div>
+  const snapshotData = useMemo(() => {
+    if (compositionChartData.length < 2) {
+      return null;
+    }
 
-    <div className="impacts">
-      <h3>Top drivers</h3>
-      {topImpacts.length === 0 ? (
-        <p className="muted">{topDriversEmptyMessage}</p>
-      ) : (
-        <ul>
-          {topImpacts.map((impact) => (
-            <li key={impact.key}>
-              <span className="field-label">
-                <span>{getScenarioLabel(impact.key)}</span>
-                {(advancedFieldDescriptions[impact.key as AdvancedPortfolioKey] ||
-                  advancedKeyOrigins[impact.key]) && (
-                  <Tooltip
-                    label={<span className="tooltip-icon">i</span>}
-                    content={
-                      advancedFieldDescriptions[impact.key as AdvancedPortfolioKey] ??
-                      advancedKeyOrigins[impact.key]
-                    }
-                  />
-                )}
-              </span>
-              <span>
-                {formatCurrency(impact.delta)} (
-                {formatPercent(impact.shock)})
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    const [beforeRow, afterRow] = compositionChartData;
 
-    <div className="scenario-notes">
-      <h3>Why it changed</h3>
-      {narrative.length === 0 ? (
-        <p className="muted">
-          Scenario copy coming soon - the notes file is empty for this template.
+    const categories = compositionCategories.map((category) => {
+      const beforeValueRaw = Number(beforeRow[category.key] ?? 0);
+      const afterValueRaw = Number(afterRow[category.key] ?? 0);
+      const beforeValue = Number.isFinite(beforeValueRaw)
+        ? Math.max(beforeValueRaw, 0)
+        : 0;
+      const afterValue = Number.isFinite(afterValueRaw)
+        ? Math.max(afterValueRaw, 0)
+        : 0;
+
+      return {
+        key: category.key,
+        label: category.label,
+        color: category.color,
+        before: beforeValue,
+        after: afterValue,
+      };
+    });
+
+    const totalBefore = categories.reduce((acc, category) => acc + category.before, 0);
+    const totalAfter = categories.reduce((acc, category) => acc + category.after, 0);
+
+    if (totalBefore <= 0 && totalAfter <= 0) {
+      return null;
+    }
+
+    return { categories, totalBefore, totalAfter };
+  }, [compositionCategories, compositionChartData]);
+
+  const handleDownloadSnapshot = useCallback(async () => {
+    if (!snapshotData) {
+      return;
+    }
+
+    setExportError(null);
+    setIsGeneratingSnapshot(true);
+
+    try {
+      const dataUrl = await createCompositionSnapshot({
+        categories: snapshotData.categories,
+        scenarioName,
+        horizonLabel: horizonLabels[horizon] ?? horizon,
+        realReturns: useRealReturns,
+        totalBefore: snapshotData.totalBefore,
+        totalAfter: snapshotData.totalAfter,
+      });
+
+      const link = document.createElement("a");
+      const slug = slugify(scenarioName) || "scenario";
+      const timestamp = new Date().toISOString().slice(0, 10);
+      link.download = `${slug}-mix-${timestamp}.png`;
+      link.href = dataUrl;
+      link.rel = "noopener";
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to create snapshot.";
+      setExportError(message);
+    } finally {
+      setIsGeneratingSnapshot(false);
+    }
+  }, [horizonLabels, horizon, scenarioName, snapshotData, useRealReturns]);
+
+  const snapshotDisabled = !snapshotData || isGeneratingSnapshot;
+
+  return (
+    <section className="panel results">
+      <h2>Shock preview</h2>
+      {!hasAnyInput && emptyStates.no_inputs && (
+        <p className="empty-state">
+          <strong>{emptyStates.no_inputs.title}:</strong>{" "}
+          {emptyStates.no_inputs.body}
         </p>
-      ) : (
-        <ul>
-          {narrative.map((bullet, idx) => (
-            <li key={idx}>{bullet}</li>
-          ))}
-        </ul>
       )}
-    </div>
+      <div className="results-summary">
+        <div>
+          <span className="result-label">Net worth (now)</span>
+          <strong>{formatCurrency(netWorthBefore)}</strong>
+        </div>
+        <div>
+          <span className="result-label">{netWorthAfterLabel}</span>
+          <strong>{formatCurrency(netWorthAfter)}</strong>
+        </div>
+        <div>
+          <span className="result-label">{changeLabel}</span>
+          <strong>
+            {formatCurrency(netWorthDelta)} (
+            {formatPercent(netWorthDeltaPct)})
+          </strong>
+        </div>
+      </div>
+      {useRealReturns && (
+        <p className="muted small-note">
+          Purchasing power shift: {formatPercent(purchasingPowerAdjustment)} (
+          {horizonLabels[horizon]})
+        </p>
+      )}
 
-    <div className="content-callouts">
-      <details>
-        <summary>Key assumptions</summary>
-        <ul>
-          {assumptionsList.map((item, idx) => (
-            <li key={idx}>{item}</li>
-          ))}
-        </ul>
-      </details>
-      <details>
-        <summary>Source anchors</summary>
-        <ul>
-          {sourcesList.map((item, idx) => (
-            <li key={idx}>{item}</li>
-          ))}
-        </ul>
-      </details>
-    </div>
-  </section>
-);
+      <div className="chart-section">
+        <div className="chart-card">
+          <h3>Portfolio mix</h3>
+          {compositionChartData.length > 0 ? (
+            <CompositionChart
+              data={compositionChartData}
+              categories={compositionCategories}
+              formatCurrency={shortCurrency}
+            />
+          ) : (
+            <p className="muted chart-empty">
+              Add assets to see the mix shift.
+            </p>
+          )}
+        </div>
+        <div className="chart-card">
+          <h3>Contribution waterfall</h3>
+          {waterfallData.length > 0 ? (
+            <WaterfallChart
+              data={waterfallData}
+              formatCurrency={formatCurrencySigned}
+            />
+          ) : (
+            <p className="muted chart-empty">
+              Add positions to trace the net change.
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="shareable-actions">
+        <button
+          type="button"
+          className="snapshot-button"
+          onClick={handleDownloadSnapshot}
+          disabled={snapshotDisabled}
+        >
+          {isGeneratingSnapshot ? "Preparing snapshot..." : "Download mix snapshot"}
+        </button>
+        {!snapshotData && hasAnyInput && (
+          <p className="muted shareable-note">
+            Add assets with positive balances to enable the export.
+          </p>
+        )}
+        {exportError && <p className="shareable-error">{exportError}</p>}
+      </div>
+
+      <div className="impacts">
+        <h3>Top drivers</h3>
+        {topImpacts.length === 0 ? (
+          <p className="muted">{topDriversEmptyMessage}</p>
+        ) : (
+          <ul>
+            {topImpacts.map((impact) => (
+              <li key={impact.key}>
+                <span className="field-label">
+                  <span>{getScenarioLabel(impact.key)}</span>
+                  {(advancedFieldDescriptions[impact.key as AdvancedPortfolioKey] ||
+                    advancedKeyOrigins[impact.key]) && (
+                    <Tooltip
+                      label={<span className="tooltip-icon">i</span>}
+                      content={
+                        advancedFieldDescriptions[impact.key as AdvancedPortfolioKey] ??
+                        advancedKeyOrigins[impact.key]
+                      }
+                    />
+                  )}
+                </span>
+                <span>
+                  {formatCurrency(impact.delta)} (
+                  {formatPercent(impact.shock)})
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="scenario-notes">
+        <h3>Why it changed</h3>
+        {narrative.length === 0 ? (
+          <p className="muted">
+            Scenario copy coming soon - the notes file is empty for this template.
+          </p>
+        ) : (
+          <ul>
+            {narrative.map((bullet, idx) => (
+              <li key={idx}>{bullet}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="content-callouts">
+        <details>
+          <summary>Key assumptions</summary>
+          <ul>
+            {assumptionsList.map((item, idx) => (
+              <li key={idx}>{item}</li>
+            ))}
+          </ul>
+        </details>
+        <details>
+          <summary>Source anchors</summary>
+          <ul>
+            {sourcesList.map((item, idx) => (
+              <li key={idx}>{item}</li>
+            ))}
+          </ul>
+        </details>
+      </div>
+    </section>
+  );
+};
 
 const DashboardFooter = () => (
   <footer className="footer">

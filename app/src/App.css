@@ -696,6 +696,50 @@
   margin: 0;
 }
 
+.shareable-actions {
+  margin: 1.25rem 0 0;
+  display: grid;
+  gap: 0.75rem;
+  max-width: 420px;
+}
+
+.snapshot-button {
+  appearance: none;
+  border: 2px solid #0c0d10;
+  background: linear-gradient(135deg, #fff3d6 0%, #fffef7 100%);
+  padding: 0.65rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 #0c0d10;
+  transition: transform 0.1s ease;
+}
+
+.snapshot-button:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+}
+
+.snapshot-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: 2px 2px 0 rgba(12, 13, 16, 0.2);
+}
+
+.shareable-note {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.shareable-error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7d1d1f;
+  font-weight: 600;
+}
+
 .chart-tooltip {
   background: #0c0d10;
   border: 2px solid #0c0d10;
