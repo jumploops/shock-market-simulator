@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import {
   ADVANCED_ONLY_KEYS,
@@ -20,6 +20,8 @@ import type { CompositionRow } from "../CompositionChart";
 import WaterfallChart from "../WaterfallChart";
 import type { WaterfallDatum } from "../WaterfallChart";
 import Tooltip from "../Tooltip";
+import ShareableImageRenderer from "../ShareableImageRenderer";
+import { exportComponentAsImage, generateFilename } from "../../utils/imageExport";
 import assumptionsContent from "../../../content/assumptions.md?raw";
 import sourcesContent from "../../../content/sources.md?raw";
 import emptyStatesContent from "../../../content/empty_states.md?raw";
@@ -376,6 +378,41 @@ const Dashboard = () => {
     : "Net worth (after)";
   const changeLabel = options.useRealReturns ? "Change (real)" : "Change";
 
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportImage = async () => {
+    if (!hasAnyInput || compositionChartData.length === 0) {
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const filename = generateFilename(scenarioTemplate.name);
+      await exportComponentAsImage(
+        <ShareableImageRenderer
+          data={compositionChartData}
+          categories={compositionCategories}
+          scenarioName={scenarioTemplate.name}
+          horizonLabel={horizonLabels[options.horizon]}
+          netWorthDeltaPct={netWorthDeltaPct}
+          options={options}
+        />,
+        filename,
+        {
+          width: 1200,
+          height: 630,
+          scale: 2,
+          backgroundColor: "#f5f2ec",
+        }
+      );
+    } catch (error) {
+      console.error("Failed to export image:", error);
+      alert("Failed to export image. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <>
       <div className="app">
@@ -440,6 +477,8 @@ const Dashboard = () => {
               assumptionsList={assumptionsList}
               sourcesList={sourcesList}
               horizonLabels={horizonLabels}
+              onExportImage={handleExportImage}
+              isExporting={isExporting}
             />
           </div>
         </div>
@@ -749,6 +788,8 @@ type ResultsPanelProps = {
   assumptionsList: string[];
   sourcesList: string[];
   horizonLabels: Record<Options["horizon"], string>;
+  onExportImage: () => void;
+  isExporting: boolean;
 };
 
 const ResultsPanel = ({
@@ -778,6 +819,8 @@ const ResultsPanel = ({
   assumptionsList,
   sourcesList,
   horizonLabels,
+  onExportImage,
+  isExporting,
 }: ResultsPanelProps) => (
   <section className="panel results">
     <h2>Shock preview</h2>
@@ -809,6 +852,19 @@ const ResultsPanel = ({
         Purchasing power shift: {formatPercent(purchasingPowerAdjustment)} (
         {horizonLabels[options.horizon]})
       </p>
+    )}
+
+    {hasAnyInput && compositionChartData.length > 0 && (
+      <div className="share-button-container">
+        <button
+          type="button"
+          className="share-button"
+          onClick={onExportImage}
+          disabled={isExporting}
+        >
+          {isExporting ? "Generating..." : "Download Share Image"}
+        </button>
+      </div>
     )}
 
     <div className="chart-section">
