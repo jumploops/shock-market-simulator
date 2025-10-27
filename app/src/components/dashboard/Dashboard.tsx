@@ -22,6 +22,7 @@ import type { WaterfallDatum } from "../WaterfallChart";
 import Tooltip from "../Tooltip";
 import ShareableImageRenderer from "../ShareableImageRenderer";
 import { exportComponentAsImage, generateFilename } from "../../utils/imageExport";
+import PieChartComparison from "../PieChartComparison";
 import assumptionsContent from "../../../content/assumptions.md?raw";
 import sourcesContent from "../../../content/sources.md?raw";
 import emptyStatesContent from "../../../content/empty_states.md?raw";
@@ -854,19 +855,6 @@ const ResultsPanel = ({
       </p>
     )}
 
-    {hasAnyInput && compositionChartData.length > 0 && (
-      <div className="share-button-container">
-        <button
-          type="button"
-          className="share-button"
-          onClick={onExportImage}
-          disabled={isExporting}
-        >
-          {isExporting ? "Generating..." : "Download Share Image"}
-        </button>
-      </div>
-    )}
-
     <div className="chart-section">
       <div className="chart-card">
         <h3>Portfolio mix</h3>
@@ -896,6 +884,29 @@ const ResultsPanel = ({
         )}
       </div>
     </div>
+
+    {compositionChartData.length > 0 && (
+      <PieChartComparison
+        data={compositionChartData}
+        categories={compositionCategories}
+        formatCurrency={formatCurrency}
+        beforeTotal={netWorthBefore}
+        afterTotal={netWorthAfter}
+      />
+    )}
+
+    {hasAnyInput && compositionChartData.length > 0 && (
+      <div className="share-button-container">
+        <button
+          type="button"
+          className="share-button"
+          onClick={onExportImage}
+          disabled={isExporting}
+        >
+          {isExporting ? "Generating..." : "Download Share Image"}
+        </button>
+      </div>
+    )}
 
     <div className="impacts">
       <h3>Top drivers</h3>
